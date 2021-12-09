@@ -51,7 +51,8 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Run if and a multi-line script
-        if: "!contains(toJSON(github.event.commits.*.message), ['skip-ci'])"
+        #if: "!contains(toJSON(github.event.commits.*.message), ['skip-ci'])"
+        if: "!contains(github.event.head_commit.message, 'ci skip')"
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
