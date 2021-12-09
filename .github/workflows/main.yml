@@ -45,9 +45,9 @@ jobs:
         
       # Runs prod automatically if approved and prod label
       - name: Run prod
-        if: github.event.review.state == 'approved' || contains(github.event.pull_request.labels.*.name, 'prod')  #||  ${{ github.event.label.name == 'prod' }}
+        if: github.event.review.state == 'approved' && contains(github.event.pull_request.labels.*.name, 'prod')  #||  ${{ github.event.label.name == 'prod' }}
         run: |
-          echo "approved " ${{ github.event.label.name == 'prod' }}
+          echo "approved " ${{ github.event.label.name }}
 
       # Runs automatically on DEV
       - name: Run dev
@@ -55,7 +55,7 @@ jobs:
         run: |
           echo if decision,
           echo test, if on pull request.
-          echo ${{ github.event.label.name == 'prod' }}
+          echo ${{ github.event.label.name }}
 
       # Runs a set of commands using the runners shell
       - name: Run if no ci skip
@@ -64,6 +64,7 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
+          echo github.event.head_commit.message
           
       # Runs on prod
       - name: Run if contains prod
