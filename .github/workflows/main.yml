@@ -34,6 +34,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: checkoutcode
+      
+      # Runs if approved
+      - name: Run if decision
         if: github.event.review.state == 'approved'
         run: |
           echo "approved" ...
