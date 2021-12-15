@@ -77,3 +77,11 @@ jobs:
           echo Bock prod,
           echo line 2 block prod.
           echo ${{ toJSON(github.event.commits.*.message) }}"
+      
+      # Runs on prod
+      - name: Run if yes in manual run dispatch
+        if: ${{ github.event.inputs.runinprod }} =='yes' 
+        run: |
+          echo Block run prod if manual run is yes,
+          echo line 2 block run prod if manual run is yes showing commits messages.
+          echo ${{ toJSON(github.event.commits.*.message) }}"
