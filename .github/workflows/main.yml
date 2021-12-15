@@ -67,7 +67,7 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
-          echo ${{ toJSON(github.event.commits.*.message) }}"
+          #echo ${{ toJSON(github.event.commits.*.message) }}"
           
       # Runs on prod
       - name: Run if contains prod
