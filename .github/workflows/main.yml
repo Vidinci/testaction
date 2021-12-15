@@ -83,5 +83,6 @@ jobs:
         if: ${{ github.event.inputs.runinprod }} =='yes' 
         run: |
           echo Block run prod if manual run is yes,
-          echo line 2 block run prod if manual run is yes showing commits messages.
-          echo ${{ toJSON(github.event.commits.*.message) }}"
+          echo line 2 block run prod if manual run is yes, showing input value.
+          echo ${{ github.event.inputs.runinprod }}
+         # echo ${{ toJSON(github.event.commits.*.message) }}"
