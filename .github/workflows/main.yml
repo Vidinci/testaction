@@ -49,10 +49,10 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_BILLING_ACCOUNT: ${{ secrets.GCP_BILLING_ACCOUNT }}
         run: |
-          #cat << EOF > ./run-modules/create-gke/terraform.tfvars
-          cat << EOF > ./terraform.tfvars
+          #cat << EOF >> ./run-modules/create-gke/terraform.tfvars
+          cat << EOF >> ./terraform.tfvars
           gcp_project_id  = "$GCP_PROJECT_ID"
-          billing_account = "$GCP_BILLING_ACCOUNT" "018957-0EAEA0-B11812"
+          billing_account = "$GCP_BILLING_ACCOUNT"
           EOF
           
       #- run: cat ./run-modules/create-gke/terraform.tfvars
