@@ -42,7 +42,20 @@ jobs:
     steps:
       - name: checkoutcode
         uses: actions/checkout@v2      
-        
+      
+      
+      - name: Setup gcp info
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_BILLING_ACCOUNT: ${{ secrets.GCP_BILLING_ACCOUNT }}
+        run: |
+          cat << EOF > ./run-modules/create-gke/terraform.tfvars
+          gcp_project_id  = "$GCP_PROJECT_ID"
+          billing_account = "$GCP_BILLING_ACCOUNT" "018957-0EAEA0-B11812"
+          EOF
+          
+      - run: cat ./run-modules/create-gke/terraform.tfvars
+      
       # Runs prod automatically if approved and prod label
       - name: Run prod
         if: github.event.review.state == 'approved' && contains(github.event.pull_request.labels.*.name, 'prod')  #||  ${{ github.event.label.name == 'prod' }}
