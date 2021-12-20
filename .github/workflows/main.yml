@@ -85,7 +85,7 @@ jobs:
      
       # Runs on prod
       - name: Run if yes in manual run dispatch
-        if: ${{ github.event.inputs.runinprod }} =='yes' 
+        if: ${{ inputs.runinprod }} =="yes"
         run: |
           echo Block run prod if manual run is yes,
           echo line 2 block run prod if manual run is yes, showing input value.
@@ -93,7 +93,7 @@ jobs:
          
        # Runs on prod
       - name: Run if yes in manual run dispatch with format
-        if: format(${{ github.event.inputs.runinprod }}) =='yes' 
+        if: format(${{ inputs.runinprod }}) =="yes"
         run: |
           echo evaluate manual run if it is yes,
           echo If manual run is yes, showing input value.
