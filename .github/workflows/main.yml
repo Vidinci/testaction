@@ -42,8 +42,7 @@ jobs:
     steps:
       - name: checkoutcode
         uses: actions/checkout@v2      
-      
-      
+           
       - name: Setup gcp info
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -70,29 +69,20 @@ jobs:
         if: (github.event_name == 'pull_request' || github.event_name == 'push') && ${{ github.event.label.name == 'dev' }}
         run: |
           echo if decision,
-          echo test, if on pull request.
+          echo test, should skip if run manual
           echo ${{ github.event.label.name }}
           echo "pull request labels:"
           echo "${{ toJson(github.event.pull_request.labels.*.name) }}"
 
       # Runs a set of commands using the runners shell
-      - name: Run if no ci skip
+      - name: Run if contains run on dev
         #if: "!contains(toJSON(github.event.commits.*.message), ['skip-ci'])"
-        if: "!contains(github.event.head_commit.message, 'ci skip')"
+        if: "contains(github.event.head_commit.message, 'run on dev')"
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo should be skipped if manual run.
+          echo test, should run only if commit message contains run on dev.
           #echo ${{ toJSON(github.event.commits.*.message) }}"
-          
-      # Runs on prod
-      - name: Run if contains prod
-        #if: "!contains(toJSON(github.event.commits.*.message), ['skip-ci'])"
-        if: "contains(github.event.head_commit.message, 'prod')"
-        run: |
-          echo Bock prod,
-          echo line 2 block prod.
-          echo ${{ toJSON(github.event.commits.*.message) }}"
-      
+     
       # Runs on prod
       - name: Run if yes in manual run dispatch
         if: ${{ github.event.inputs.runinprod }} =='yes' 
@@ -100,4 +90,12 @@ jobs:
           echo Block run prod if manual run is yes,
           echo line 2 block run prod if manual run is yes, showing input value.
           echo ${{ github.event.inputs.runinprod }}
-         # echo ${{ toJSON(github.event.commits.*.message) }}"
+         
+       # Runs on prod
+      - name: Run if yes in manual run dispatch with format
+        if: format(${{ github.event.inputs.runinprod }}) =='yes' 
+        run: |
+          echo evaluate manual run if it is yes,
+          echo If manual run is yes, showing input value.
+          echo ${{ github.event.inputs.runinprod }}
+      
