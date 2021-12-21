@@ -79,13 +79,7 @@ jobs:
           TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
         run: |
           cat << EOF > ./run-modules/create-gke/.terraformrc
-          {
-             "credentials": {
-               "app.terraform.io": {
-                 "token": "$TFE_TOKEN"
-                }
-              }
-          }
+          {"credentials": {"app.terraform.io": {"token": "$TFE_TOKEN"}}}
           EOF
           
       - run: cat ./run-modules/create-gke/.terraformrc
