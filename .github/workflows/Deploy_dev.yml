@@ -1,0 +1,154 @@
+# This workflow runs Terraform CLI containerized, configures the Terraform CLI configuration file
+# with an API token for Terraform Cloud (app.terraform.io). On pull request events, this workflow will run
+# `terraform init`, validate, fmt, and terraform plan. 
+# `terraform apply` will be executed: 
+# -- On manual run if input parameter is yes
+# -- On push events to the main branch, if environment is dev
+
+name: 'TF_deploy-dev'
+
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+    paths: 
+      - '**.tf'
+      - '**.tfvars'
+  pull_request:
+      paths: 
+      - '**.tf'
+      - '**.tfvars'
+      
+ # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      runapply:
+        description: 'Enter yes or no if apply should be run'
+        required: true
+        default: 'No'
+        
+jobs:
+  build:
+    name: 'TF_prepare'
+    runs-on: ubuntu-latest
+    environment: dev
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    #====================================#
+    # Checkout the repository to the GitHub Actions runner
+    #====================================#
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    #====================================#
+    # Build required info in TF files
+    #====================================#
+    - name: Setup gcp info
+        env:
+          G_PROJ: ${{ secrets.G_PROJ }}
+          G_B_ACT: ${{ secrets.G_B_ACT }}
+        run: |
+          cat << EOF >> ./run-modules/create-gke/terraform.tfvars
+          
+          gcp_project_id  = "$G_PROJ"
+          billing_account = "$G_B_ACT"
+          EOF
+          
+    - run: cat ./run-modules/create-gke/terraform.tfvars
+    
+    #====================================#
+    # Build required info for TF Container
+    #====================================#
+    - name: Setup TF token
+        env:
+          TF_INFO: ${{ secrets.TFE_INFO }}
+        run: |
+          cat << EOF > ./run-modules/create-gke/.terraformrc
+          {"credentials": {"app.terraform.io": {"token": "$TFE_INFO"}}}
+          EOF
+          
+    - run: cat ./run-modules/create-gke/.terraformrc
+     
+    #====================================#
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    #====================================#
+    - name: Terraform init
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}       
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ init
+          
+    #====================================#
+    # Terraform validate: Runs terraform validate
+    #====================================#
+    - name: Run a Terraform validate on /run-modules/create-gke
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ validate
+
+    
+    #====================================#
+    # Terraform format
+    #====================================#
+    - name: Run Terraform format on /run-modules/create-gke
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ fmt
+
+ 
+    #====================================#
+    # Linting of TF code
+    # Runs a container from ghcr.io, version v0.33.1
+    #====================================#
+    - name: Check linting of Terraform files for GKE
+        uses: terraform-linters/tflint-bundle@v0.33.1
+        # here are some options: loglevel to provide visibility, disable 1 TFLint default rule that was giving us Warning, and manually specify the location in the repo for TF files
+        with:
+          args: --ignore-module=SOURCE --loglevel=info --disable-rule=terraform_deprecated_interpolation ./run-modules/create-gke/
+
+    #====================================#
+    # Terraform plan : Generates an execution plan for Terraform
+    #====================================#
+    - name: Run a Terraform plan on /modules/gke
+        id: plan
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ plan
+          
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+ 
+    # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+    #====================================#
+    # Terraform apply : On push to main, build or change infrastructure according to Terraform configuration files
+    #====================================#
+    - name: Terraform Apply
+      if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (${{ github.event.inputs.runapply == 'yes' }})
+      uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ apply -auto-approve
+          
