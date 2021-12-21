@@ -34,8 +34,8 @@ jobs:
         with:
           gcloud_auth_key: ${{ secrets.G_INFO }}
           gcloud_project_id: ${{ secrets.G_PROJ }}
-          cluster_name: '' #${{ secrets.CLUSTER_NAME }}
-          cluster_region: us-central1-a
+          cluster_name: 'gke-tformers-tformers-default-dev' #${{ secrets.CLUSTER_NAME }}
+          cluster_region: us-central1
           release_namespace: core
           release_name: react-redux
           chart_name: ./charts/realworldchart
