@@ -30,7 +30,7 @@ jobs:
         run: echo Hello, world!
 
       - name: Install Helm chart react_redux
-        uses: hahow/install-helm-chart-action@v1
+        uses: hahow/install-helm-chart-action@v1.0.3
         with:
           gcloud_auth_key: ${{ secrets.G_INFO }}
           gcloud_project_id: ${{ secrets.G_PROJ }}
