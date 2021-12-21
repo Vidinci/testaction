@@ -48,8 +48,38 @@ jobs:
         shell: bash
 
     steps:
-    #====================================#
-    # Checkout the repository to the GitHub Actions runner
-    #====================================#
-    - name: Checkout
-      uses: actions/checkout@v2
+        #====================================#
+        # Checkout the repository to the GitHub Actions runner
+        #====================================#
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+        #====================================#
+        # Build required info in TF files
+        #====================================#
+      - name: Setup gcp info
+        env:
+          G_PROJ: ${{ secrets.G_PROJ }}
+          G_B_ACT: ${{ secrets.G_B_ACT }}
+        run: |
+          cat << EOF >> ./run-modules/create-gke/terraform.tfvars
+          
+          gcp_project_id  = "$G_PROJ"
+          billing_account = "$G_B_ACT"
+          EOF
+          
+      - run: cat ./run-modules/create-gke/terraform.tfvars
+    
+        #====================================#
+        # Build required info for TF Container
+        #====================================#
+      - name: Setup TF token
+        env:
+          TF_INFO: ${{ secrets.TFE_INFO }}
+        run: |
+          cat << EOF > ./run-modules/create-gke/.terraformrc
+          {"credentials": {"app.terraform.io": {"token": "$TFE_INFO"}}}
+          EOF
+          
+      - run: cat ./run-modules/create-gke/.terraformrc
+      
