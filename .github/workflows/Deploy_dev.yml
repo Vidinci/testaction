@@ -45,7 +45,7 @@ jobs:
           echo ${{ github.event.inputs.runapply }}
           
       - name: Show vars2
-        if: (${{ github.event.inputs.runapply == 'yes' }} || (github.ref == 'refs/heads/main' && github.event_name == 'push'))
+        if: ${{ github.event.inputs.runapply == 'yes' }}
         run: |
           echo This should not appear,
           echo event: ${{ github.event_name }}
@@ -285,9 +285,9 @@ jobs:
         #====================================#
         # Terraform plan : Generates an execution plan for Terraform
         #====================================#
-      - name: Terraform apply
+      - name: Terraform apply auto
         id: apply
-        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (${{ github.event.inputs.runapply == 'yes' }})
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push')
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
            TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
@@ -295,10 +295,24 @@ jobs:
         with:
           entrypoint: terraform
           args: -chdir=./run-modules/create-gke/ apply -auto-approve
-          
-      - name: Terraform apply Status
+      
+      - name: Terraform apply manual
+        id: apply_manual
+        if: ${{ github.event.inputs.runapply == 'yes' }}
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ apply -auto-approve
+      
+      - name: Terraform apply_auto Status
         if: steps.apply.outcome == 'failure'
         run: exit 1
 
+      - name: Terraform apply_manual Status
+        if: steps.apply_manual.outcome == 'failure'
+        run: exit 1
         
    
