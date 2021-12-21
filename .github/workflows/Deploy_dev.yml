@@ -36,6 +36,14 @@ jobs:
         run: |
           echo "${{toJSON(github.event)}}"
           
+      - name: Show vars
+        #if: ${{ github.event.inputs.runapply == 'yes' }}
+        run: |
+          echo Block run prod if manual run is yes,
+          echo event: ${{ github.event_name }}
+          echo github.ref: ${{ github.ref }}
+          echo ${{ github.event.inputs.runapply }}
+          
   build:
     name: 'TF_prepare'
     runs-on: ubuntu-latest
