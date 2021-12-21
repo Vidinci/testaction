@@ -36,7 +36,7 @@ jobs:
           gcloud_project_id: ${{ secrets.G_PROJ }}
           cluster_name: 'gke-tformers-tformers-default-dev' #${{ secrets.CLUSTER_NAME }}
           cluster_region: us-central1
-          release_namespace: core
+          release_namespace: default
           release_name: react-redux
           chart_name: ./charts/realworldchart
           helm_upgrade_args: |
