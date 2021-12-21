@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: TF_Deploy
+name: TF_Deploy_dev
 on:
   push:
     branches: [ main,'dev','prod']
@@ -36,3 +36,20 @@ jobs:
       - name: Logging
         run: |
           echo "${{toJSON(github.event)}}"
+          
+  build:
+    name: 'TF_prepare'
+    runs-on: ubuntu-latest
+    environment: dev
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    #====================================#
+    # Checkout the repository to the GitHub Actions runner
+    #====================================#
+    - name: Checkout
+      uses: actions/checkout@v2
