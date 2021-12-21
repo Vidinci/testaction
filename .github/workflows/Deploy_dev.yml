@@ -132,15 +132,68 @@ jobs:
         with:
           args: --ignore-module=SOURCE --loglevel=info --disable-rule=terraform_deprecated_interpolation ./run-modules/create-gke/
 
+  terraform_plan:
+  #if prebuildcheck passes, do TF plan
+   name: 'TF_plan'
+   runs-on: ubuntu-latest
+   environment: dev
+   needs: build
+   steps:
+        #====================================#
+        # Checkout the repository to the GitHub Actions runner
+        #====================================#
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+        #====================================#
+        # Build required info in TF files
+        #====================================#
+      - name: Setup gcp info
+        env:
+          G_PROJ: ${{ secrets.G_PROJ }}
+          G_B_ACT: ${{ secrets.G_B_ACT }}
+        run: |
+          cat << EOF >> ./run-modules/create-gke/terraform.tfvars
+          
+          gcp_project_id  = "$G_PROJ"
+          billing_account = "$G_B_ACT"
+          EOF
+          
+      - run: cat ./run-modules/create-gke/terraform.tfvars
+      
+        #====================================#
+        # Build required info for TF Container
+        #====================================#
+      - name: Setup TF token
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_INFO }}
+        run: |
+          cat << EOF > ./run-modules/create-gke/.terraformrc
+          {"credentials": {"app.terraform.io": {"token": "$TFE_TOKEN"}}}
+          EOF
+          
+      - run: cat ./run-modules/create-gke/.terraformrc
+
+        #====================================#
+        # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+        #====================================#
+      - name: Terraform init
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}       
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ init
+          
         #====================================#
         # Terraform plan : Generates an execution plan for Terraform
         #====================================#
       - name: Terraform plan
-        id: plan
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
            TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
-           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}
+           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         with:
           entrypoint: terraform
           args: -chdir=./run-modules/create-gke/ plan
@@ -148,3 +201,4 @@ jobs:
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
+   
