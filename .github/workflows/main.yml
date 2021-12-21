@@ -66,8 +66,14 @@ jobs:
           TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
         run: |
           #cat << EOF > ./run-modules/create-gke/.terraformrc
-          cat << EOF > ./.terraformrc
-          {"credentials": {"app.terraform.io": {"token": "$TFE_TOKEN"}}}
+          cat << EOF > .terraformrc
+          {
+             "credentials": {
+               "app.terraform.io": {
+                 "token": "$TFE_TOKEN"
+                }
+              }
+          }
           EOF
           
       #- run: cat ./run-modules/create-gke/.terraformrc
@@ -77,7 +83,8 @@ jobs:
       - name: Run a Terraform init on /modules/gke
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
-           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           #TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           TF_CLI_CONFIG_FILE: ./.terraformrc
            GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}       
         with:
           entrypoint: terraform
@@ -88,7 +95,8 @@ jobs:
       - name: Run a Terraform validate on /modules/gke
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
-           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           #TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           TF_CLI_CONFIG_FILE: ./.terraformrc
            GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         with:
           entrypoint: terraform
@@ -141,7 +149,8 @@ jobs:
         env:
           TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
         run: |
-          cat << EOF > ./run-modules/create-gke/.terraformrc
+          #cat << EOF > ./run-modules/create-gke/.terraformrc
+          cat << EOF > .terraformrc
           {
              "credentials": {
                "app.terraform.io": {
@@ -154,7 +163,8 @@ jobs:
       - name: Run Terraform init on /modules/gke
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
-           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           #TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           TF_CLI_CONFIG_FILE: ./.terraformrc
            GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         with:
           entrypoint: terraform
@@ -165,7 +175,8 @@ jobs:
         id: plan
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
-           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           #TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           TF_CLI_CONFIG_FILE: ./.terraformrc
            GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         with:
           entrypoint: terraform
