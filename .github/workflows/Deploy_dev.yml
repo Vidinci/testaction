@@ -9,12 +9,11 @@ on:
       - '**.tfvars'
  
   pull_request:
-    types: [ 'labeled','opened','synchronize','reopened']
+   # types: [ 'labeled','opened','synchronize','reopened']
     branches: [ 'main','dev','prod' ]
     paths: 
       - '**.tf'
       - '**.tfvars'
-
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -201,8 +200,11 @@ jobs:
   #if build and plan pass, do TF apply
    name: 'TF_apply'
    runs-on: ubuntu-latest
+   #if: (github.ref == 'refs/heads/main' && github.event_name == 'push')
+   if: (${{ github.event.inputs.runapply == 'yes' }})
    environment: dev
    needs: terraform_plan
+
    steps:
 
        # Checkout the repository to the GitHub Actions runner
