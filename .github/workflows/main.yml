@@ -45,14 +45,12 @@ jobs:
            
       - name: Setup gcp info
         env:
-          NL: $'\n'
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_BILLING_ACCOUNT: ${{ secrets.GCP_BILLING_ACCOUNT }}
         run: |
           #cat << EOF >> ./run-modules/create-gke/terraform.tfvars
           cat << EOF >> ./terraform.tfvars
-          $'\n'
-          $NL
+
           gcp_project_id  = "$GCP_PROJECT_ID"
           billing_account = "$GCP_BILLING_ACCOUNT"
           EOF
