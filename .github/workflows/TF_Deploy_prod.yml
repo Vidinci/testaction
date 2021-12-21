@@ -1,0 +1,269 @@
+# This workflow runs Terraform CLI containerized, configures the Terraform CLI configuration file
+# with an API token for Terraform Cloud (app.terraform.io). On pull request events, this workflow will run
+# `terraform init`, validate, fmt, and terraform plan. 
+# `terraform apply` will be executed: 
+# -- On manual run if input parameter is yes
+# -- On push events to the main branch, if environment is prod
+
+name: TF_Deploy_prod
+on:
+  push:
+    branches: [ main,'dev','prod']
+    paths: 
+      - '**.tf'
+      - '**.tfvars'
+ 
+  pull_request:
+   # types: [ 'labeled','opened','synchronize','reopened']
+    branches: [ 'main','dev','prod' ]
+    paths: 
+      - '**.tf'
+      - '**.tfvars'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      runapply:
+        description: 'Enter yes or no if apply should be run'
+        required: true
+        default: 'No'
+    
+    #${{ github.event.inputs.runapply =='' }}
+        
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:         
+  build:
+    name: 'TF_prepare'
+    runs-on: ubuntu-latest
+    environment: prod
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+        #====================================#
+        # Checkout the repository to the GitHub Actions runner
+        #====================================#
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+        #====================================#
+        # Build required info in TF files
+        #====================================#
+      - name: Setup gcp info
+        env:
+          G_PROJ: ${{ secrets.G_PROJ }}
+          G_B_ACT: ${{ secrets.G_B_ACT }}
+        run: |
+          cat << EOF >> ./run-modules/create-gke/terraform.tfvars
+          
+          gcp_project_id  = "$G_PROJ"
+          billing_account = "$G_B_ACT"
+          EOF
+    
+        #====================================#
+        # Build required info for TF Container
+        #====================================#
+      - name: Setup TF token
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_INFO }}
+        run: |
+          cat << EOF > ./run-modules/create-gke/.terraformrc
+          {"credentials": {"app.terraform.io": {"token": "$TFE_TOKEN"}}}
+          EOF
+          
+      #- run: cat ./run-modules/create-gke/.terraformrc
+
+        #====================================#
+        # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+        #====================================#
+      - name: Terraform init
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}       
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ init
+          
+        #====================================#
+        # Terraform validate: Runs terraform validate
+        #====================================#
+      - name: Terraform validate
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ validate
+        
+       #====================================#
+       # Terraform format
+       #====================================#
+      - name: Terraform format
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ fmt
+
+       #====================================#
+       # Linting of TF code
+       # Runs a container from ghcr.io, version v0.33.1
+       #====================================#
+      - name: Linting of Terraform files
+        uses: terraform-linters/tflint-bundle@v0.33.1
+        # here are some options: loglevel to provide visibility, disable 1 TFLint default rule that was giving us Warning, and manually specify the location in the repo for TF files
+        with:
+          args: --ignore-module=SOURCE --loglevel=info --disable-rule=terraform_deprecated_interpolation ./run-modules/create-gke/
+
+  terraform_plan:
+  #if prebuildcheck passes, do TF plan
+   name: 'TF_plan'
+   runs-on: ubuntu-latest
+   environment: prod
+   needs: build
+   steps:
+        #====================================#
+        # Checkout the repository to the GitHub Actions runner
+        #====================================#
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+        #====================================#
+        # Build required info in TF files
+        #====================================#
+      - name: Setup gcp info
+        env:
+          G_PROJ: ${{ secrets.G_PROJ }}
+          G_B_ACT: ${{ secrets.G_B_ACT }}
+        run: |
+          cat << EOF >> ./run-modules/create-gke/terraform.tfvars
+          
+          gcp_project_id  = "$G_PROJ"
+          billing_account = "$G_B_ACT"
+          EOF
+      
+        #====================================#
+        # Build required info for TF Container
+        #====================================#
+      - name: Setup TF token
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_INFO }}
+        run: |
+          cat << EOF > ./run-modules/create-gke/.terraformrc
+          {"credentials": {"app.terraform.io": {"token": "$TFE_TOKEN"}}}
+          EOF
+        #====================================#
+        # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+        #====================================#
+      - name: Terraform init
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}       
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ init
+          
+        #====================================#
+        # Terraform plan : Generates an execution plan for Terraform
+        #====================================#
+      - name: Terraform plan
+        id: plan
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ plan
+          
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  terraform_apply:
+  #if build and plan pass, do TF apply
+   name: 'TF_apply'
+   runs-on: ubuntu-latest
+   environment: prod
+   needs: terraform_plan
+   if: (${{ github.event.inputs.runapply == 'yes' }})
+   steps:
+
+       # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+        #====================================#
+        # Build required info in TF files
+        #====================================#
+      - name: Setup gcp info
+        env:
+          G_PROJ: ${{ secrets.G_PROJ }}
+          G_B_ACT: ${{ secrets.G_B_ACT }}
+        run: |
+          cat << EOF >> ./run-modules/create-gke/terraform.tfvars
+          
+          gcp_project_id  = "$G_PROJ"
+          billing_account = "$G_B_ACT"
+          EOF
+      
+        #====================================#
+        # Build required info for TF Container
+        #====================================#
+      - name: Setup TF token
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_INFO }}
+        run: |
+          cat << EOF > ./run-modules/create-gke/.terraformrc
+          {"credentials": {"app.terraform.io": {"token": "$TFE_TOKEN"}}}
+          EOF
+          
+       #====================================#
+        # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+        #====================================#
+      - name: Terraform init
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}       
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ init
+          
+        #====================================#
+        # Terraform plan : Generates an execution plan for Terraform
+        #====================================#
+      - name: Terraform apply auto
+        id: apply
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push')
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ apply -auto-approve
+      
+      - name: Terraform apply manual
+        id: apply_manual
+        if: ${{ github.event.inputs.runapply == 'yes' }}
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ apply -auto-approve
+      
+      - name: Terraform apply_auto Status
+        if: steps.apply.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform apply_manual Status
+        if: steps.apply_manual.outcome == 'failure'
+        run: exit 1
