@@ -82,4 +82,48 @@ jobs:
           EOF
           
       - run: cat ./run-modules/create-gke/.terraformrc
-      
+
+        #====================================#
+        # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+        #====================================#
+      - name: Terraform init
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}       
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ init
+          
+        #====================================#
+        # Terraform validate: Runs terraform validate
+        #====================================#
+      - name: Run a Terraform validate on /run-modules/create-gke
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ validate
+        
+       #====================================#
+       # Terraform format
+       #====================================#
+      - name: Run Terraform format on /run-modules/create-gke
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ fmt
+
+       #====================================#
+       # Linting of TF code
+       # Runs a container from ghcr.io, version v0.33.1
+       #====================================#
+      - name: Check linting of Terraform files for GKE
+        uses: terraform-linters/tflint-bundle@v0.33.1
+        # here are some options: loglevel to provide visibility, disable 1 TFLint default rule that was giving us Warning, and manually specify the location in the repo for TF files
+        with:
+          args: --ignore-module=SOURCE --loglevel=info --disable-rule=terraform_deprecated_interpolation ./run-modules/create-gke/
+
+
