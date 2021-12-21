@@ -15,7 +15,8 @@ on:
       - '**.tf'
       - '**.tfvars'
   pull_request:
-      paths: 
+    branches: [ 'main','dev','prod' ]
+    paths: 
       - '**.tf'
       - '**.tfvars'
       
