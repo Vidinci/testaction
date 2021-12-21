@@ -75,37 +75,32 @@ jobs:
         #====================================#
       - name: Setup TF token
         env:
-          TF_INFO: ${{ secrets.TFE_INFO }}
+          TFE_TOKEN: ${{ secrets.TFE_INFO }}
         run: |
           cat << EOF > ./run-modules/create-gke/.terraformrc
-          {"credentials": {"app.terraform.io": {"token": "$TFE_INFO"}}}
+          {
+             "credentials": {
+               "app.terraform.io": {
+                 "token": "$TFE_TOKEN"
+                }
+              }
+          }
           EOF
           
       - run: cat ./run-modules/create-gke/.terraformrc
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          cli_config_credentials_token: ${{ secrets.TFE_INFO }}
-          entrypoint: terraform
-          args: -chdir=./run-modules/create-gke/ init
-        
-       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-      #- name: Terraform Init
-      #  run: terraform init
-
         #====================================#
         # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
         #====================================#
-      #- name: Terraform init
-      #  uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
-      #  env:
-      #     TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
-      #     GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}       
-      #  with:
-      #    entrypoint: terraform
-      #    args: -chdir=./run-modules/create-gke/ init
-      #    
+      - name: Terraform init
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.G_INFO }}       
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ init
+          
         #====================================#
         # Terraform validate: Runs terraform validate
         #====================================#
