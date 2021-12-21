@@ -45,7 +45,7 @@ jobs:
           echo ${{ github.event.inputs.runapply }}
           
       - name: Show vars2
-        if: ${{ github.event.inputs.runapply == 'yes' }}
+        if: ${{ github.event.inputs.runapply == 'yes' }} || (github.ref == 'refs/heads/main' && github.event_name == 'push')
         run: |
           echo This should not appear,
           echo event: ${{ github.event_name }}
