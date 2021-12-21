@@ -14,32 +14,7 @@ on:
     
         
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-
-  log-github-event-goodies:
-    name: "LOG Everything on GitHub Event"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Logging
-        run: |
-          echo "${{toJSON(github.event)}}"
-          
-      - name: Show vars
-        #if: ${{ github.event.inputs.rundestroy == 'yes' }}
-        run: |
-          echo Block vars,
-          echo event: ${{ github.event_name }}
-          echo github.ref: ${{ github.ref }}
-          echo ${{ github.event.inputs.runapply }}
-          
-      - name: Show vars2
-        if: ${{ github.event.inputs.rundestroy == 'yes' }}
-        run: |
-          echo This should not appear,
-          echo event: ${{ github.event_name }}
-          echo github.ref: ${{ github.ref }}
-          echo ${{ github.event.inputs.runapply }}
-                    
+jobs:                    
   build:
     name: 'TF_prepare'
     runs-on: ubuntu-latest
