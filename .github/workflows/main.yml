@@ -29,6 +29,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
+      runapply:
+        description: 'Enter yes or no if apply should be run'
+        required: true
+        default: 'No'
       runinprod:
         description: 'Run on production'
         required: true
@@ -38,6 +42,15 @@ on:
         
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+
+  log-github-event-goodies:
+    name: "LOG Everything on GitHub Event"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Logging
+        run: |
+          echo "${{toJSON(github.event)}}"
+  
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
@@ -51,22 +64,21 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_BILLING_ACCOUNT: ${{ secrets.GCP_BILLING_ACCOUNT }}
         run: |
-          #cat << EOF >> ./run-modules/create-gke/terraform.tfvars
-          cat << EOF >> ./terraform.tfvars
+          cat << EOF >> ./run-modules/create-gke/terraform.tfvars
+          #cat << EOF >> ./terraform.tfvars
 
           gcp_project_id  = "$GCP_PROJECT_ID"
           billing_account = "$GCP_BILLING_ACCOUNT"
           EOF
           
-      #- run: cat ./run-modules/create-gke/terraform.tfvars
-      - run: cat ./terraform.tfvars
+      - run: cat ./run-modules/create-gke/terraform.tfvars
+      #- run: cat ./terraform.tfvars
       
       - name: Setup TF token
         env:
           TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
         run: |
-          #cat << EOF > ./run-modules/create-gke/.terraformrc
-          cat << EOF > .terraformrc
+          cat << EOF > ./run-modules/create-gke/.terraformrc
           {
              "credentials": {
                "app.terraform.io": {
@@ -76,43 +88,37 @@ jobs:
           }
           EOF
           
-      #- run: cat ./run-modules/create-gke/.terraformrc
-      - run: cat ./.terraformrc
+      - run: cat ./run-modules/create-gke/.terraformrc
       
         # Runs Terraform init
-      - name: Run a Terraform init on /modules/gke
+      - name: Run a Terraform init on /run-modules/create-gke
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
-           #TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
-           TF_CLI_CONFIG_FILE: ./.terraformrc
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
            GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}       
         with:
           entrypoint: terraform
-          #args: -chdir=./run-modules/create-gke/ init
-          args: -chdir=./ init
+          args: -chdir=./run-modules/create-gke/ init
           
         # Terraform validate: Runs terraform validate
-      - name: Run a Terraform validate on /modules/gke
+      - name: Run a Terraform validate on /run-modules/create-gke
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
-           #TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
-           TF_CLI_CONFIG_FILE: ./.terraformrc
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
            GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         with:
           entrypoint: terraform
-          #args: -chdir=./run-modules/create-gke/ validate
-          args: -chdir=./ validate
-  
+          args: -chdir=./run-modules/create-gke/ validate
+
       # Terraform format
-      - name: Run Terraform format on /modules/gke
+      - name: Run Terraform format on /run-modules/create-gke
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
            GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         with:
           entrypoint: terraform
-          #args: -chdir=./run-modules/create-gke/ fmt
-          args: -chdir=./ fmt
-      
+          args: -chdir=./run-modules/create-gke/ fmt
+          
       # Linting of TF code
      
         # Runs a container from ghcr.io, version v0.33.1
@@ -120,10 +126,9 @@ jobs:
         uses: terraform-linters/tflint-bundle@v0.33.1
         # here are some options: loglevel to provide visibility, disable 1 TFLint default rule that was giving us Warning, and manually specify the location in the repo for TF files
         with:
-          #args: --ignore-module=SOURCE --loglevel=info --disable-rule=terraform_deprecated_interpolation ./run-modules/create-gke/      
-          args: --ignore-module=SOURCE --loglevel=info --disable-rule=terraform_deprecated_interpolation ./     
-      
-  terraform_plan:
+          args: --ignore-module=SOURCE --loglevel=info --disable-rule=terraform_deprecated_interpolation ./run-modules/create-gke/      
+          
+  terraform_plan_apply:
   #if prebuildcheck passes, do TF plan
    runs-on: ubuntu-latest
    needs: build
@@ -137,20 +142,18 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_BILLING_ACCOUNT: ${{ secrets.GCP_BILLING_ACCOUNT }}
         run: |
-          #cat << EOF >> ./run-modules/create-gke/terraform.tfvars
-          cat << EOF >> ./terraform.tfvars
-
+          cat << EOF >> ./run-modules/create-gke/terraform.tfvars
+          
           gcp_project_id  = "$GCP_PROJECT_ID"
           billing_account = "$GCP_BILLING_ACCOUNT"
           EOF
           
-      # prepares Terraform token, to be able to donnect to TFC and download the Terraform modules specified in main-gke.tf source tag
+      # prepares Terraform token, to be able to connect to TFC and download the Terraform modules specified in main-gke.tf source tag
       - name: Setup TF_token
         env:
           TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
         run: |
-          #cat << EOF > ./run-modules/create-gke/.terraformrc
-          cat << EOF > .terraformrc
+          cat << EOF > ./run-modules/create-gke/.terraformrc
           {
              "credentials": {
                "app.terraform.io": {
@@ -163,41 +166,45 @@ jobs:
       - name: Run Terraform init on /modules/gke
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
-           #TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
-           TF_CLI_CONFIG_FILE: ./.terraformrc
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
            GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         with:
           entrypoint: terraform
-          #args: -chdir=./run-modules/create-gke/ init
-          args: -chdir=./ init
-
+          args: -chdir=./run-modules/create-gke/ init
+         
       - name: Run a Terraform plan on /modules/gke
         id: plan
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
-           #TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
-           TF_CLI_CONFIG_FILE: ./.terraformrc
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
            GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         with:
           entrypoint: terraform
-          #args: -chdir=./run-modules/create-gke/ plan
-          args: -chdir=./ plan
-
+          args: -chdir=./run-modules/create-gke/ plan
+          
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
-  
       # Runs prod automatically if approved and prod label
-      - name: Run prod
-        if: github.event.review.state == 'approved' && contains(github.event.pull_request.labels.*.name, 'prod')  #||  ${{ github.event.label.name == 'prod' }}
-        run: |
-          echo "approved " ${{ github.event.label.name }}
-          echo "${{ toJson(github.event.pull_request.labels.*.name) }}"
+      - name: Run apply if dev or prod if approved
+        id: apply
+        if: (${{ github.event.inputs.runapply == 'yes' }}) || (github.event_name == 'push' && !contains(github.event.head_commit.message, 'skip apply')) || (github.event.review.state == 'approved' && contains(github.event.pull_request.labels.*.name, 'prod')) || (${{ github.event.label.name == 'dev' }}) || (${{ github.ref == 'refs/heads/dev' }})
+        uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
+        env:
+           TF_CLI_CONFIG_FILE: ./run-modules/create-gke/.terraformrc
+           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        with:
+          entrypoint: terraform
+          args: -chdir=./run-modules/create-gke/ plan
+
+        #run: |
+        #  echo "approved " ${{ github.event.label.name }}
+        #  echo "${{ toJson(github.event.pull_request.labels.*.name) }}"
 
       # Runs automatically on DEV
       - name: Run dev
-        if: (github.event_name == 'pull_request' || github.event_name == 'push') && ${{ github.event.label.name == 'dev' }}
+        if: (github.event_name == 'push' && !contains(github.event.head_commit.message, 'skip apply')) || (github.event_name == 'pull_request' || github.event_name == 'push') && ${{ github.event.label.name == 'dev' }}
         run: |
           echo if decision,
           echo test, should skip if run manual
