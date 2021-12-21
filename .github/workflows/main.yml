@@ -11,7 +11,12 @@ name: testmanualapproval
 #    branches: [ main ]
 
 on:
-
+  push:
+    branches: [ main,'dev','prod']
+    paths: 
+      - '**.tf'
+      - '**.tfvars'
+ 
   pull_request:
     types: [ 'labeled','opened','synchronize','reopened']
     branches: [ 'main','dev','prod' ]
