@@ -250,12 +250,14 @@ jobs:
           entrypoint: terraform
           args: -chdir=./run-modules/create-gke/ apply -auto-approve
 
-      - name: Call terraform output
+      - name: Call terraform output auto
         run: |
           output_auto_gke_id=$(terraform output id)
           echo output_auto: $output_auto_gke_id
 
       - run: echo ${{ steps.apply.outputs.stdout }}
+      - run: echo ${{ steps.apply.outputs.id }}
+      - run: echo ${{ steps.apply.outputs.stderr }}
 
       - name: Terraform apply_auto Status
         if: steps.apply.outcome == 'failure'
@@ -272,11 +274,15 @@ jobs:
           entrypoint: terraform
           args: -chdir=./run-modules/create-gke/ apply -auto-approve
 
-      - name: Call terraform output
+      - name: Call terraform output manual
         run: |
           output_manual_gke_id=$(terraform output id)
           echo output_manual: $output_manual_gke_id
-          
+
+      - run: echo ${{ steps.apply_manual.outputs.stdout }}
+      - run: echo ${{ steps.apply_manual.outputs.id }}
+      - run: echo ${{ steps.apply_manual.outputs.stderr }}
+
       - name: Terraform apply_manual Status
         if: steps.apply_manual.outcome == 'failure'
         run: exit 1
