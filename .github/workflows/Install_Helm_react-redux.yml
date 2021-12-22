@@ -29,8 +29,8 @@ env:
   APP_REPO_OWNER: Vidinci
   APP_REPO_NAME: realworld-test-cm
   IMAGE: react-redux
-  DEPLOYMENT_NAME: react-redux    
-
+  DEPLOYMENT_NAME: react-redux
+  CHART_PATH: helmchartLab9/realworldchart    #path exists in the realworld repository, realworldchart folder contains the value.yml and chart.yml files
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -78,6 +78,7 @@ jobs:
      # Change the path to the location of the docker file 
      # Ex. in following command the Dockerfile is from the cloned repo under a folder named react-redux (same name as image name, it could have been different)
       - name: Build
+        if: ${{ github.event.inputs.installapp  =='yes' }}
         run: |-
           docker build \
            --tag "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA" \
@@ -88,7 +89,6 @@ jobs:
       - name: Publish
         run: |-
           docker push "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
-         
 
 #--set image.tag=${{ github.sha }}
 
@@ -98,11 +98,11 @@ jobs:
         with:
           gcloud_auth_key: ${{ secrets.G_INFO }}
           gcloud_project_id: ${{ secrets.G_PROJ }}
-          cluster_name: 'gke-tformers-tformers-default-dev' #${{ secrets.CLUSTER_NAME }}
-          cluster_region: us-central1
+          cluster_name: $GKE_CLUSTER  # 'gke-tformers-tformers-default-dev'
+          cluster_region: $GKE_REGION  # us-central1
           release_namespace: default
-          release_name: react-redux
-          chart_name: ./charts/realworldchart
+          release_name: $DEPLOYMENT_NAME # react-redux
+          chart_name: ./$APP_REPO_NAME/$CHART_PATH  #./charts/realworldchart
           helm_upgrade_args: |
-               --set=image.tag=v5
+               --set=image.tag=$GITHUB_SHA  $v5
 
