@@ -50,6 +50,9 @@ jobs:
      #
       - name: Get RealWorld app from its repo
         uses: GuillaumeFalourd/clone-github-repo-action@v1
+        env:
+           APP_REPO_OWNER: $APP_REPO_OWNER
+           APP_REPO_NAME: $APP_REPO_NAME
         with:
           owner: $APP_REPO_OWNER
           repository: $APP_REPO_NAME
