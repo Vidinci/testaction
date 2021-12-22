@@ -103,6 +103,16 @@ jobs:
           cluster_region: ${{ env.GKE_REGION }} # us-central1
           release_namespace: default
           release_name: react-redux
-          chart_name: ./${{ env.APP_REPO_NAME }}/${{ env.CHART_PATH }} #./realworld-test-cm/helmchartLab9/realworldchart  #./charts/realworldchart
+          chart_name: ./${{ env.APP_REPO_NAME }}/${{ env.CHART_PATH }}  #./charts/realworldchart
           helm_upgrade_args: |
                --set=image.tag=v5
+               
+      # Get info about the services deployed
+      - name: Service info IP and port
+        run: |
+          gcloud container clusters get-credentials $GKE_CLUSTER \
+            --region $GKE_REGION \
+            --project ${{ secrets.G_PROJ }}
+          echo Use External IP and firts port (4100) shown to acces the application from the browser. ex. http://IP:4100
+          kubectl get services -o wide
+          
