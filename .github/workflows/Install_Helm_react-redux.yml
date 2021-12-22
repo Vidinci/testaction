@@ -30,16 +30,22 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: 'Main Code checkout'
         uses: actions/checkout@v2
-      - name: 'Get Helm Chart from its repo'
-        uses: actions/checkout@v2
+        
+      - name: Get Helm Chart from its repo
+        uses: GuillaumeFalourd/clone-github-repo-action@v1
         with:
-           token: ${{ secrets.PAT }}
-           repository: Vidinci/realworld-test-cm
-           path: realworld-test-cm
-      
+          owner: 'Vidinci'
+          repository: 'realworld-test-cm'
+          access-token: ${{ secrets.PAT }}  
+       
       # Runs a single command using the runners shell
       - name: Run ls command
         run: ls ./*
+        
+      - name: Access cloned repository content
+        run: |
+         cd realworld-test-cm
+         ls -l
 
 #--set image.tag=${{ github.sha }}
 
