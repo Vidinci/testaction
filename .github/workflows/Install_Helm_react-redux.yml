@@ -29,6 +29,8 @@ jobs:
       - name: Run a one-line script
         run: echo Hello, world!
 
+#--set image.tag=${{ github.sha }}
+
       - name: Install Helm chart react_redux
         uses: hahow/install-helm-chart-action@v1.0.3
         with:
@@ -40,6 +42,5 @@ jobs:
           release_name: react-redux
           chart_name: ./charts/realworldchart
           helm_upgrade_args: |
-            #--set image.tag=${{ github.sha }}
-             --set=image.tag=v5
+               --set=image.tag=v5
 
