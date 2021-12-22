@@ -6,7 +6,7 @@ gcp_auth_file = "./terraform-svc.json" #File with service account Key in json fo
 gcp_region = "us-central1"
 gcp_zone   = "us-central1-a"
 
-org         = "tformers"
+org         = "ycit"
 environment = "dev"               #value to be prefixed to resources names to differentiate them
 bucket_name = "tf-bucket-ycit021" # Put the desired GCS Bucket name.
 
