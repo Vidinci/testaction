@@ -17,6 +17,20 @@ on:
         description: 'Enter yes or no (lowercase) if install should happen'
         required: true
         default: 'No'
+#==============================
+# Variable section
+#==============================
+env:
+  PROJECT_ID: ${{ secrets.G_PROJ }}
+  SERVICE_ACCOUNT: ${{ secrets.G_INFO }}
+  GITHUB_SHA: ${{ github.sha }}
+  GKE_CLUSTER: gke-ycit-tformers-default-dev
+  GKE_REGION: us-central1
+  APP_REPO_OWNER: Vidinci
+  APP_REPO_NAME: realworld-test-cm
+  IMAGE: react-redux
+  DEPLOYMENT_NAME: react-redux    
+
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -30,12 +44,15 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: 'Main Code checkout'
         uses: actions/checkout@v2
-        
-      - name: Get Helm Chart from its repo
+     
+     # Requires you create a GitHub personal Token 
+     # https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+     #
+      - name: Get RealWorld app from its repo
         uses: GuillaumeFalourd/clone-github-repo-action@v1
         with:
-          owner: 'Vidinci'
-          repository: 'realworld-test-cm'
+          owner: $APP_REPO_OWNER
+          repository: $APP_REPO_NAME
           access-token: ${{ secrets.PAT }}  
        
       # Runs a single command using the runners shell
@@ -44,7 +61,7 @@ jobs:
         
       - name: Access cloned repository content
         run: |
-         cd realworld-test-cm
+         cd $APP_REPO_NAME
          ls -l
 
 #--set image.tag=${{ github.sha }}
