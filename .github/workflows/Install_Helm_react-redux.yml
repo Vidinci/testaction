@@ -87,6 +87,7 @@ jobs:
            ./$APP_REPO_NAME/$IMAGE
      # Push the Docker image to Google Container Registry, for the real world app react-redux
       - name: Publish
+        if: ${{ github.event.inputs.installapp  =='yes' }}
         run: |-
           docker push "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
 
