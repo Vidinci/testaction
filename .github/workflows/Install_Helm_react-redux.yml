@@ -102,5 +102,5 @@ jobs:
           release_name: react-redux
           chart_name: ./${{ env.APP_REPO_NAME }}/${{ env.CHART_PATH }} #./realworld-test-cm/helmchartLab9/realworldchart  #./charts/realworldchart
           helm_upgrade_args: |
-               --set=image.tag= ${{ env.GITHUB_SHA }}
+               --set image.tag= ${{ env.GITHUB_SHA }}
 
