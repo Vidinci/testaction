@@ -117,4 +117,5 @@ jobs:
           gcloud container clusters get-credentials $GKE_CLUSTER \
           --region $GKE_REGION \
           --project ${{ secrets.G_PROJ }}
+          kubectl get services -o wide
           
