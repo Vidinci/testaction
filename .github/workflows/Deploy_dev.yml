@@ -5,7 +5,7 @@
 # -- On manual run if input parameter is yes
 # -- On push events to the main branch, if environment is dev
 
-name: TF_Deploy_dev
+name: 01.TF_Deploy_dev
 on:
   push:
     branches: [ main,'dev','prod']
