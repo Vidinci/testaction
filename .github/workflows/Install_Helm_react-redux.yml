@@ -91,19 +91,33 @@ jobs:
         run: |-
           docker push "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
 
-#--set image.tag=${{ github.sha }}
+     # Install helm
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+        
+     # Deploy to the GKE cluster. Use Gcloud to get credentials and update or install the reactReduxChart into the cluster
+     # Make sure to set the image.tag to be used in the reactReduxChart.values.yaml to the latest one. For the react-redux app deployment to use.
+      - name: Deploy
+        run: |
+          gcloud container clusters get-credentials $GKE_CLUSTER \
+            --region $GKE_REGION \
+            --project $PROJECT_ID
+          helm upgrade --install $DEPLOYMENT_NAME-cm $DEPLOYMENT_NAME \
+            --set=image.tag=$GITHUB_SHA
+          kubectl rollout status deployment/$DEPLOYMENT_NAME-cm
+          kubectl get services -o wide
 
-      - name: Install Helm chart react_redux
-        if: ${{ github.event.inputs.installapp  =='yes' }}
-        uses: hahow/install-helm-chart-action@v1.0.3
-        with:
-          gcloud_auth_key: ${{ secrets.G_INFO }}
-          gcloud_project_id: ${{ secrets.G_PROJ }}
-          cluster_name: $GKE_CLUSTER  # 'gke-tformers-tformers-default-dev'
-          cluster_region: $GKE_REGION  # us-central1
-          release_namespace: default
-          release_name: $DEPLOYMENT_NAME # react-redux
-          chart_name: ./$APP_REPO_NAME/$CHART_PATH  #./charts/realworldchart
-          helm_upgrade_args: |
-               --set=image.tag=$GITHUB_SHA  $v5
+      #- name: Install Helm chart react_redux
+      #  uses: hahow/install-helm-chart-action@v1.0.3
+      #  with:
+      #    gcloud_auth_key: ${{ secrets.G_INFO }}
+      #    gcloud_project_id: ${{ secrets.G_PROJ }}
+      #    cluster_name: 'gke-tformers-tformers-default-dev'
+      #    cluster_region: us-central1
+      #    release_namespace: default
+      #    release_name: react-redux
+      #    chart_name: ./charts/realworldchart
+      #    helm_upgrade_args: |
+      #         --set=image.tag=v5
 
