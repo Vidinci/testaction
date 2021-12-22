@@ -114,4 +114,7 @@ jobs:
           echo "run following commands to get info about the service (replace parameters with proper values)"
           echo 'gcloud container clusters get-credentials {GKE_CLUSTER_NAME} --region {GKE_CLUSTER_REGION} --project {GCP_PROJECT_ID}'
           echo kubectl get services -o wide
+          gcloud container clusters get-credentials $GKE_CLUSTER \
+          --region $GKE_REGION \
+          --project ${{ secrets.G_PROJ }}
           
