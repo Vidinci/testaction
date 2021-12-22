@@ -91,6 +91,9 @@ jobs:
         run: |-
           docker push "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
 
+      # Install realworld app helm chart
+      #  --set=image.tag=${{ env.GITHUB_SHA }}
+
       - name: Install Helm chart react_redux
         uses: hahow/install-helm-chart-action@v1.0.3
         with:
@@ -102,5 +105,4 @@ jobs:
           release_name: react-redux
           chart_name: ./${{ env.APP_REPO_NAME }}/${{ env.CHART_PATH }} #./realworld-test-cm/helmchartLab9/realworldchart  #./charts/realworldchart
           helm_upgrade_args: |
-               --set=image.tag= ${{ env.GITHUB_SHA }}
-
+               --set=image.tag=v5
