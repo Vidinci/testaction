@@ -255,9 +255,14 @@ jobs:
           output_auto_gke_id=$(terraform output id)
           echo output_auto: $output_auto_gke_id
 
-      - run: echo ${{ steps.apply.outputs.stdout }}
-      - run: echo ${{ steps.apply.outputs.id }}
-      - run: echo ${{ steps.apply.outputs.stderr }}
+      - name: 'Use Terraform Output automatic run'
+        run: echo ${{ steps.apply.outputs.tf_actions_output  }}
+
+      - name: Outputs from automatic run
+        run: |
+          echo autostdout ${{ steps.apply.outputs.stdout }}
+          echo autogkeid ${{ steps.apply.outputs.id }}
+          echo autostderr ${{ steps.apply.outputs.stderr }}
 
       - name: Terraform apply_auto Status
         if: steps.apply.outcome == 'failure'
@@ -279,9 +284,14 @@ jobs:
           output_manual_gke_id=$(terraform output id)
           echo output_manual: $output_manual_gke_id
 
-      - run: echo ${{ steps.apply_manual.outputs.stdout }}
-      - run: echo ${{ steps.apply_manual.outputs.id }}
-      - run: echo ${{ steps.apply_manual.outputs.stderr }}
+      - name: 'Use Terraform Output manual run'
+        run: echo ${{ steps.apply_manual.outputs.tf_actions_output  }}
+        
+      - name: Outputs from automatic run
+        run: |
+          echo manualstdout ${{ steps.apply_manual.outputs.stdout }}
+          echo manualgkeid ${{ steps.apply_manual.outputs.id }}
+          echo manualstderr ${{ steps.apply_manual.outputs.stderr }}
 
       - name: Terraform apply_manual Status
         if: steps.apply_manual.outcome == 'failure'
