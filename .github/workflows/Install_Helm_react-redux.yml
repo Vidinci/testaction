@@ -111,7 +111,7 @@ jobs:
       - name: Service info IP and port
         run: |
           echo Use External IP and port 4100 to acces the application from the browser. ex. http://IP:4100
-          echo run following commands to get info about the service (replace parameters with proper values):
+          echo run following commands to get info about the service (replace parameters with proper values)
           echo gcloud container clusters get-credentials {GKE_CLUSTER_NAME} --region {GKE_CLUSTER_REGION} --project {GCP_PROJECT_ID}
           echo kubectl get services -o wide
           
