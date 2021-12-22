@@ -40,4 +40,4 @@ jobs:
           release_name: react-redux
           chart_name: ./charts/realworldchart
           helm_upgrade_args: |
-            --set image.tag=${{ github.sha }}
+            --set image.tag=v5 #${{ github.sha }}
