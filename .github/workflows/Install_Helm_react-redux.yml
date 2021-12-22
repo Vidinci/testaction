@@ -100,7 +100,7 @@ jobs:
           cluster_region: ${{ env.GKE_REGION }} # us-central1
           release_namespace: default
           release_name: react-redux
-          chart_name: ./realworld-test-cm/helmchartLab9/realworldchart  #./charts/realworldchart
+          chart_name: ./${{ env.APP_REPO_NAME }}/${{ env.CHART_PATH }} #./realworld-test-cm/helmchartLab9/realworldchart  #./charts/realworldchart
           helm_upgrade_args: |
-               --set=image.tag= ${{ env.GITHUB_SHA }}  #v5
+               --set=image.tag= ${{ env.GITHUB_SHA }}
 
