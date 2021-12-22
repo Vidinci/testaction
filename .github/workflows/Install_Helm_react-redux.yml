@@ -54,8 +54,8 @@ jobs:
            APP_REPO_OWNER: $APP_REPO_OWNER
            APP_REPO_NAME: $APP_REPO_NAME
         with:
-          owner: ${{ APP_REPO_OWNER }} 
-          repository: ${{ APP_REPO_NAME }} 
+          owner: ${{ env.APP_REPO_OWNER }} 
+          repository: ${{ env.APP_REPO_NAME }} 
           access-token: ${{ secrets.PAT }}  
        
       # Runs a single command using the runners shell
