@@ -1,5 +1,6 @@
-gcp_auth_file   = "./terraform-svc.json" #File with service account Key in json format 
-#gcp_project_id  = " "        #Project ID, not the name the Project Id
+gcp_auth_file = "./terraform-svc.json" #File with service account Key in json format 
+
+#gcp_project_id  = " " #Project ID, not the name the Project Id
 #billing_account = " " #billing account tied to the project Id
 
 gcp_region = "us-central1"

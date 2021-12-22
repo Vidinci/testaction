@@ -1,5 +1,21 @@
+# Google cloud credentials, token of service account, service-account.json or simialr
+*.json
+*.key
+
+# Terraform token and auth files
+.terraformrc
+checkpoint*
+
+#hcl files
+*.hcl
+.terraform.lock*
+
+# Local .terraform directory directories
+.terraform.*
+
 # Local .terraform directories
 **/.terraform/*
+*.terraform
 
 # .tfstate files
 *.tfstate
@@ -13,6 +29,7 @@ crash.log
 # version control.
 #
 # example.tfvars
+*.tfvars
 
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in
@@ -27,3 +44,7 @@ override.tf.json
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
+
+.terraformrc
+run-modules/create-gke/.terraformrc
+run-modules/create-gke/.terraformrc
