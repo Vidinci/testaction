@@ -55,7 +55,7 @@ jobs:
            APP_REPO_NAME: $APP_REPO_NAME
         with:
           owner: 'Vidinci' 
-          repository: "$APP_REPO_NAME" 
+          repository: 'realworld-test-cm'
           access-token: ${{ secrets.PAT }}  
        
       # Runs a single command using the runners shell
