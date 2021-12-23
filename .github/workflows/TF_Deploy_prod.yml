@@ -37,7 +37,7 @@ env:
   PROJECT_ID: ${{ secrets.G_PROJ }}
   SERVICE_ACCOUNT: ${{ secrets.G_INFO }}
   GITHUB_SHA: ${{ github.sha }}
-  GKE_CLUSTER: gke-ycit-tformers-default-prod #TODO grab terraform output, meantime add value here
+  GKE_CLUSTER: gke-ycit-tformers-default-prod  #TODO grab terraform output, meantime add value here
   GKE_REGION: us-central1
   APP_REPO_OWNER: Vidinci
   APP_REPO_NAME: realworld-test-cm
@@ -326,14 +326,14 @@ jobs:
       - name: Build
         run: |-
           docker build \
-           --tag "gcr.io/${{ secrets.G_PROJ }}/$IMAGE:$GITHUB_SHA" \
-           --build-arg GITHUB_SHA="$GITHUB_SHA" \
+           --tag "gcr.io/${{ secrets.G_PROJ }}/$IMAGE:${{ env.GITHUB_SHA }}" \
+           --build-arg GITHUB_SHA="${{ env.GITHUB_SHA }}" \
            --build-arg GITHUB_REF="$GITHUB_REF" \
            ./$APP_REPO_NAME/$IMAGE
         # Push the Docker image to Google Container Registry, for the real world app react-redux
       - name: Publish
         run: |-
-          docker push "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
+          docker push "gcr.io/$PROJECT_ID/$IMAGE:${{ env.GITHUB_SHA }}"
         #====================================
         # Install realworld app helm chart
         #====================================      
@@ -348,8 +348,10 @@ jobs:
           release_name: ${{ env.DEPLOYMENT_NAME }} #react-redux
           chart_name: ./${{ env.APP_REPO_NAME }}/${{ env.CHART_PATH }}  #./charts/realworldchart
           helm_upgrade_args: |
-               --set=image.tag=v2
-           #  --set=image.tag=${{ env.GITHUB_SHA }}
+               --set=image.tag=${{ env.GITHUB_SHA }}
+               
+       #  --set=image.tag=${{ env.GITHUB_SHA }}
+       
       # Get info about the services deployed
       - name: Service info IP and port
         run: |
