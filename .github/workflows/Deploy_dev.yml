@@ -37,7 +37,7 @@ env:
   PROJECT_ID: ${{ secrets.G_PROJ }}
   SERVICE_ACCOUNT: ${{ secrets.G_INFO }}
   GITHUB_SHA: ${{ github.sha }}
-  #GITHUB_SHA: v2
+  GKE_ENV: dev
   GKE_CLUSTER: gke-ycit-tformers-default-dev   #terraform output
   GKE_REGION: us-central1
   APP_REPO_OWNER: Vidinci
@@ -71,11 +71,13 @@ jobs:
         env:
           G_PROJ: ${{ secrets.G_PROJ }}
           G_B_ACT: ${{ secrets.G_B_ACT }}
+          GKE_ENV: ${{ env.GKE_ENV }}
         run: |
           cat << EOF >> ./run-modules/create-gke/terraform.tfvars
           
           gcp_project_id  = "$G_PROJ"
           billing_account = "$G_B_ACT"
+          environment = "$GKE_ENV"               #value to be prefixed to resources names to differentiate them
           EOF
     
         #====================================#
@@ -154,11 +156,13 @@ jobs:
         env:
           G_PROJ: ${{ secrets.G_PROJ }}
           G_B_ACT: ${{ secrets.G_B_ACT }}
+          GKE_ENV: ${{ env.GKE_ENV }}
         run: |
           cat << EOF >> ./run-modules/create-gke/terraform.tfvars
           
           gcp_project_id  = "$G_PROJ"
           billing_account = "$G_B_ACT"
+          environment = "$GKE_ENV"               #value to be prefixed to resources names to differentiate them
           EOF
       
         #====================================#
@@ -221,11 +225,13 @@ jobs:
         env:
           G_PROJ: ${{ secrets.G_PROJ }}
           G_B_ACT: ${{ secrets.G_B_ACT }}
+          GKE_ENV: ${{ env.GKE_ENV }}
         run: |
           cat << EOF >> ./run-modules/create-gke/terraform.tfvars
           
           gcp_project_id  = "$G_PROJ"
           billing_account = "$G_B_ACT"
+          environment = "$GKE_ENV"               #value to be prefixed to resources names to differentiate them
           EOF
       
         #====================================#
