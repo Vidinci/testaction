@@ -12,7 +12,12 @@ on:
         required: true
         default: 'No'
     
-        
+#==============================
+# Variable section
+#==============================
+env:
+  GKE_ENV: dev
+  
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:                    
   build:
@@ -40,14 +45,16 @@ jobs:
         env:
           G_PROJ: ${{ secrets.G_PROJ }}
           G_B_ACT: ${{ secrets.G_B_ACT }}
+          GKE_ENV: ${{ env.GKE_ENV }}
         run: |
           cat << EOF >> ./run-modules/create-gke/terraform.tfvars
           
           gcp_project_id  = "$G_PROJ"
           billing_account = "$G_B_ACT"
+          environment = "$GKE_ENV"               #value to be prefixed to resources names to differentiate them
           EOF
           
-      - run: cat ./run-modules/create-gke/terraform.tfvars
+      #- run: cat ./run-modules/create-gke/terraform.tfvars
     
         #====================================#
         # Build required info for TF Container
@@ -60,7 +67,7 @@ jobs:
           {"credentials": {"app.terraform.io": {"token": "$TFE_TOKEN"}}}
           EOF
           
-      - run: cat ./run-modules/create-gke/.terraformrc
+      #- run: cat ./run-modules/create-gke/.terraformrc
 
         #====================================#
         # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
@@ -96,11 +103,13 @@ jobs:
         env:
           G_PROJ: ${{ secrets.G_PROJ }}
           G_B_ACT: ${{ secrets.G_B_ACT }}
+          GKE_ENV: ${{ env.GKE_ENV }}
         run: |
           cat << EOF >> ./run-modules/create-gke/terraform.tfvars
           
           gcp_project_id  = "$G_PROJ"
           billing_account = "$G_B_ACT"
+          environment = "$GKE_ENV"               #value to be prefixed to resources names to differentiate them
           EOF
 
         #====================================#
@@ -127,9 +136,9 @@ jobs:
           args: -chdir=./run-modules/create-gke/ init
           
         #====================================#
-        # Terraform plan : Generates an execution plan for Terraform
+        # Terraform destroy : Destroy objects created by Terraform Deploy action
         #====================================#
-      - name: Terraform plan
+      - name: Terraform destroy
         id: destroy
         uses: docker://ghcr.io/ycit-team-terraformers/terraformers:v1
         env:
