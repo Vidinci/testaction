@@ -1,3 +1,24 @@
+# Introduction
+
+This is an academic project for the Class DevOps practice. 
+
+## Description
+
+The repository uses terraform code consuming terraform modules published in Terraform Cloud to deploy a Google Kubernetes Cluster (GKE). 
+once the cluster is created, an application form RealWorld conduit is deployed on the GKE cluster.
+
+A pipepline exists to deploy the application, including the following steps 
+- Terraform validate
+- Terraform format
+- Terraform linting
+- Terraform plan
+- Terraform apply
+- Install RealWorld application react-redux using a Helm Chart.
+
+The Real World application is react-redux and a Helm Chart was created to install the application. The files for the Real World application are in a different repository that was forked from the offcial repository.
+
+Once the applicaiton is deployed on the GKE cluster, it can be accessed on port 4100. using the IP Adresse of the Load Balancer service. 
+
 ## Requirements
 
 | Name | Version |
