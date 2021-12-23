@@ -81,15 +81,15 @@ jobs:
         if: ${{ github.event.inputs.installapp  =='yes' }}
         run: |-
           docker build \
-           --tag "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA" \
-           --build-arg GITHUB_SHA="$GITHUB_SHA" \
+           --tag "gcr.io/$PROJECT_ID/$IMAGE:${{ env.GITHUB_SHA }}" \
+           --build-arg GITHUB_SHA="${{ env.GITHUB_SHA }}" \
            --build-arg GITHUB_REF="$GITHUB_REF" \
            ./$APP_REPO_NAME/$IMAGE
      # Push the Docker image to Google Container Registry, for the real world app react-redux
       - name: Publish
         if: ${{ github.event.inputs.installapp  =='yes' }}
         run: |-
-          docker push "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
+          docker push "gcr.io/$PROJECT_ID/$IMAGE:${{ env.GITHUB_SHA }}"
 
       # Install realworld app helm chart
       #  --set=image.tag=${{ env.GITHUB_SHA }}
@@ -105,7 +105,7 @@ jobs:
           release_name: react-redux
           chart_name: ./${{ env.APP_REPO_NAME }}/${{ env.CHART_PATH }}  #./charts/realworldchart
           helm_upgrade_args: |
-               --set=image.tag=v5
+               --set=image.tag=${{ env.GITHUB_SHA }}
                
       # Get info about the services deployed
       - name: Service info IP and port
