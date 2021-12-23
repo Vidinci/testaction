@@ -36,8 +36,8 @@ on:
 env:
   PROJECT_ID: ${{ secrets.G_PROJ }}
   SERVICE_ACCOUNT: ${{ secrets.G_INFO }}
-  #GITHUB_SHA: ${{ github.sha }}
-  GITHUB_SHA: v2
+  GITHUB_SHA: ${{ github.sha }}
+  #GITHUB_SHA: v2
   GKE_CLUSTER: gke-ycit-tformers-default-dev   #terraform output
   GKE_REGION: us-central1
   APP_REPO_OWNER: Vidinci
